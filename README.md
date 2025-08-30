@@ -202,18 +202,4 @@ java -Xms4g -Xmx4g \
 - **Network Tuning**: Optimize TCP buffer sizes and interrupt coalescing
 - **Memory**: Use huge pages for better memory management
 
-## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For questions and support, please open an issue on GitHub or contact the development team.

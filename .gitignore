@@ -47,3 +47,4 @@ test-output/
 *.swo
 *~
 
+dependency-reduced-pom.xml
