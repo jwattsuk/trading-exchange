@@ -1,0 +1,49 @@
+# Maven build output
+/target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# VS Code
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Other build tools
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Coverage / reports
+*.exec
+jacoco.exec
+surefire-reports/
+failsafe-reports/
+test-output/
+
+# Temporary files
+*.swp
+*.swo
+*~
+
