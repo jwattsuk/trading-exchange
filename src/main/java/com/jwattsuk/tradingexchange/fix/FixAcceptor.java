@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.*;
 import quickfix.field.*;
+import com.jwattsuk.tradingexchange.fix.FixSessionManager.SessionInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -240,6 +241,11 @@ public class FixAcceptor {
         @Override
         public void onLogon(SessionID sessionID) {
             logger.info("FIX session logged on: {}", sessionID);
+            // Mark session as active
+            SessionInfo sessionInfo = sessionManager.getSession(sessionID);
+            if (sessionInfo != null) {
+                logger.info("Session {} is now active and ready to receive orders", sessionID);
+            }
         }
         
         @Override
@@ -250,21 +256,33 @@ public class FixAcceptor {
         
         @Override
         public void toAdmin(Message message, SessionID sessionID) {
-            // Add admin messages if needed
+            logger.debug("Sending admin message: {}", message);
         }
         
         @Override
         public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-            // Handle admin messages
+            logger.debug("Received admin message: {}", message);
+            // Handle logon/logout messages
+            try {
+                String msgType = message.getHeader().getString(MsgType.FIELD);
+                if ("A".equals(msgType)) { // Logon
+                    logger.info("Received Logon message from session: {}", sessionID);
+                } else if ("5".equals(msgType)) { // Logout
+                    logger.info("Received Logout message from session: {}", sessionID);
+                }
+            } catch (FieldNotFound e) {
+                logger.warn("Admin message missing MsgType field");
+            }
         }
         
         @Override
         public void toApp(Message message, SessionID sessionID) throws DoNotSend {
-            // Add application messages if needed
+            logger.debug("Sending app message: {}", message);
         }
         
         @Override
         public void fromApp(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+            logger.info("Received application message from session: {}", sessionID);
             try {
                 crack(message, sessionID);
             } catch (Exception e) {
