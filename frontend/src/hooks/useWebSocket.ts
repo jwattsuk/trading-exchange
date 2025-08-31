@@ -1,30 +1,35 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { WebSocketManager, createWebSocketManager } from '@/utils/websocket';
 import { useMarketDataStore } from '@/store/marketDataStore';
 import { MarketDataMessage } from '@/types/marketData';
 
 export const useWebSocket = (url: string) => {
   const wsManagerRef = useRef<WebSocketManager | null>(null);
-  const {
-    setConnectionStatus,
-    setError,
-    processMarketDataMessage,
-  } = useMarketDataStore();
+  
+  // Memoize the store actions to prevent unnecessary re-renders
+  const storeActions = useMemo(() => ({
+    setConnectionStatus: useMarketDataStore.getState().setConnectionStatus,
+    setError: useMarketDataStore.getState().setError,
+    processMarketDataMessage: useMarketDataStore.getState().processMarketDataMessage,
+  }), []);
 
   const handleMessage = useCallback((message: MarketDataMessage) => {
-    processMarketDataMessage(message);
-  }, [processMarketDataMessage]);
+    console.log('WebSocket received message:', message);
+    storeActions.processMarketDataMessage(message);
+  }, [storeActions]);
 
   const handleStatusChange = useCallback((status: 'connecting' | 'connected' | 'disconnected' | 'error') => {
-    setConnectionStatus(status);
+    console.log('WebSocket status change:', status);
+    storeActions.setConnectionStatus(status);
     if (status === 'error') {
-      setError('WebSocket connection error');
+      storeActions.setError('WebSocket connection error');
     } else {
-      setError(undefined);
+      storeActions.setError(undefined);
     }
-  }, [setConnectionStatus, setError]);
+  }, [storeActions]);
 
   const connect = useCallback(() => {
+    console.log('Connecting to WebSocket:', url);
     if (!wsManagerRef.current) {
       wsManagerRef.current = createWebSocketManager(
         url,
@@ -38,12 +43,13 @@ export const useWebSocket = (url: string) => {
   }, [url, handleMessage, handleStatusChange]);
 
   const disconnect = useCallback(() => {
+    console.log('Disconnecting WebSocket');
     if (wsManagerRef.current) {
       wsManagerRef.current.disconnect();
       wsManagerRef.current = null;
     }
-    setConnectionStatus('disconnected');
-  }, [setConnectionStatus]);
+    storeActions.setConnectionStatus('disconnected');
+  }, [storeActions]);
 
   const send = useCallback((message: MarketDataMessage) => {
     if (wsManagerRef.current) {

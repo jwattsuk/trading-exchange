@@ -42,35 +42,63 @@ export const useMarketDataStore = create<MarketDataStore>((set, get) => ({
   },
 
   updateOrderBook: (snapshot) => {
-    set((state) => ({
-      orderBooks: {
-        ...state.orderBooks,
-        [snapshot.symbol]: snapshot,
-      },
-      lastUpdate: {
-        ...state.lastUpdate,
-        [snapshot.symbol]: snapshot.timestamp,
-      },
-    }));
+    set((state) => {
+      // Only update if the data has actually changed
+      const existing = state.orderBooks[snapshot.symbol];
+      if (existing && 
+          existing.timestamp === snapshot.timestamp &&
+          JSON.stringify(existing) === JSON.stringify(snapshot)) {
+        return state; // No change, return same state
+      }
+      
+      console.log('Updating order book for symbol:', snapshot.symbol);
+      
+      return {
+        orderBooks: {
+          ...state.orderBooks,
+          [snapshot.symbol]: snapshot,
+        },
+        lastUpdate: {
+          ...state.lastUpdate,
+          [snapshot.symbol]: snapshot.timestamp,
+        },
+      };
+    });
   },
 
   updateQuote: (quote) => {
-    set((state) => ({
-      quotes: {
-        ...state.quotes,
-        [quote.symbol]: quote,
-      },
-      lastUpdate: {
-        ...state.lastUpdate,
-        [quote.symbol]: Date.now(),
-      },
-    }));
+    set((state) => {
+      // Only update if the data has actually changed
+      const existing = state.quotes[quote.symbol];
+      if (existing && 
+          existing.bidPrice === quote.bidPrice &&
+          existing.askPrice === quote.askPrice &&
+          existing.bidQuantity === quote.bidQuantity &&
+          existing.askQuantity === quote.askQuantity) {
+        return state; // No change, return same state
+      }
+      
+      console.log('Updating quote for symbol:', quote.symbol);
+      
+      return {
+        quotes: {
+          ...state.quotes,
+          [quote.symbol]: quote,
+        },
+        lastUpdate: {
+          ...state.lastUpdate,
+          [quote.symbol]: Date.now(),
+        },
+      };
+    });
   },
 
   updateTrade: (trade) => {
     set((state) => {
       const existingTrades = state.trades[trade.symbol] || [];
       const updatedTrades = [trade, ...existingTrades.slice(0, 99)]; // Keep last 100 trades
+      
+      console.log('Updating trades for symbol:', trade.symbol);
       
       return {
         trades: {
@@ -87,6 +115,8 @@ export const useMarketDataStore = create<MarketDataStore>((set, get) => ({
 
   processMarketDataMessage: (message) => {
     const { type, data } = message;
+    
+    console.log('Processing market data message:', type, data);
     
     switch (type) {
       case 'ORDER_BOOK':
@@ -107,7 +137,7 @@ export const useMarketDataStore = create<MarketDataStore>((set, get) => ({
     set(initialState);
   },
 
-  removeSymbol: (symbol) => {
+  removeSymbol: (symbol: string) => {
     set((state) => {
       const { [symbol]: _removedOrderBook, ...remainingOrderBooks } = state.orderBooks;
       const { [symbol]: _removedQuote, ...remainingQuotes } = state.quotes;
