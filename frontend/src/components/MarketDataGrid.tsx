@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef, GridOptions, ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { useQuotesQuery } from '@/hooks/useMarketData';
@@ -19,6 +19,7 @@ export function MarketDataGrid() {
   const { data: quotes = [], isLoading, error } = useQuotesQuery();
   const lastUpdate = useLastUpdate();
 
+  // Memoize column definitions to prevent unnecessary re-renders
   const columnDefs: ColDef<Quote>[] = useMemo(() => [
     {
       headerName: 'Symbol',
@@ -109,6 +110,7 @@ export function MarketDataGrid() {
     },
   ], [lastUpdate]);
 
+  // Memoize grid options to prevent unnecessary re-renders
   const gridOptions: GridOptions<Quote> = useMemo(() => ({
     defaultColDef: {
       resizable: true,
@@ -133,6 +135,11 @@ export function MarketDataGrid() {
       borderBottom: '1px solid #e5e7eb',
     }),
   }), [columnDefs, quotes]);
+
+  // Memoize the row style function to prevent unnecessary re-renders
+  const getRowStyle = useCallback(() => ({
+    borderBottom: '1px solid #e5e7eb',
+  }), []);
 
   if (isLoading) {
     return (
@@ -164,6 +171,7 @@ export function MarketDataGrid() {
       <div className="w-full" style={{ height: '600px' }}>
         <AgGridReact
           {...gridOptions}
+          getRowStyle={getRowStyle}
         />
       </div>
     </div>
