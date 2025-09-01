@@ -31,8 +31,8 @@ public class FixTestClient {
     
     public static void main(String[] args) {
         try {
-            logger.info("🚀 Starting FIX Test Client...");
-            logger.info("📋 This client will connect to the trading exchange and allow you to send orders");
+            logger.info("Starting FIX Test Client...");
+            logger.info("This client will connect to the trading exchange and allow you to send orders");
             
             FixTestClient client = new FixTestClient();
             client.start();
@@ -40,11 +40,11 @@ public class FixTestClient {
             if (client.isConnected()) {
                 client.runInteractiveMode();
             } else {
-                logger.error("❌ Failed to establish FIX session");
+                logger.error("Failed to establish FIX session");
             }
             
         } catch (Exception e) {
-            logger.error("❌ Error during FIX test", e);
+            logger.error("Error during FIX test", e);
         }
     }
     
@@ -52,41 +52,41 @@ public class FixTestClient {
      * Start the FIX client and establish connection
      */
     public void start() throws Exception {
-        logger.info("🔌 Starting FIX client connection...");
+        logger.info("Starting FIX client connection...");
         
         // Load session settings from configuration file
         SessionSettings settings = new SessionSettings("fix-test-client.cfg");
-        logger.info("📁 Loaded session settings from fix-test-client.cfg");
-        logger.info("⚙️ Session configuration: {}", settings);
+        logger.info("Loaded session settings from fix-test-client.cfg");
+        logger.info("Session configuration: {}", settings);
         
         // Create components
         MessageStoreFactory storeFactory = new MemoryStoreFactory();
-        logger.info("💾 Message store factory created (in-memory)");
+        logger.info("Message store factory created (in-memory)");
         
         LogFactory logFactory = new ScreenLogFactory(settings);
-        logger.info("📝 Log factory created (screen logging enabled)");
+        logger.info("Log factory created (screen logging enabled)");
         
         MessageFactory messageFactory = new DefaultMessageFactory();
-        logger.info("📨 Message factory created (FIX 4.4)");
+        logger.info("Message factory created (FIX 4.4)");
         
         // Create application
         FixTestApplication application = new FixTestApplication();
-        logger.info("🔧 FIX application created");
+        logger.info("FIX application created");
         
         // Create initiator
         initiator = new SocketInitiator(application, storeFactory, settings, logFactory, messageFactory);
-        logger.info("🔌 Socket initiator created");
+        logger.info("Socket initiator created");
         
-        logger.info("🚀 Starting initiator...");
+        logger.info("Starting initiator...");
         initiator.start();
-        logger.info("⏳ Waiting for session establishment...");
+        logger.info("Waiting for session establishment...");
         
         // Wait for session establishment
         if (logonLatch.await(30, TimeUnit.SECONDS)) {
-            logger.info("✅ FIX session established successfully!");
+            logger.info("FIX session established successfully!");
             isRunning = true;
         } else {
-            logger.error("❌ Failed to establish FIX session within 30 seconds");
+            logger.error("Failed to establish FIX session within 30 seconds");
             throw new RuntimeException("Session establishment timeout");
         }
     }
@@ -96,9 +96,9 @@ public class FixTestClient {
      */
     public void stop() {
         if (initiator != null) {
-            logger.info("🛑 Stopping FIX client...");
+            logger.info("Stopping FIX client...");
             initiator.stop();
-            logger.info("✅ FIX client stopped");
+            logger.info("FIX client stopped");
             isRunning = false;
         }
     }
@@ -115,13 +115,13 @@ public class FixTestClient {
      */
     public void sendNewOrderSingle(String symbol, char side, int quantity, double price, char orderType) {
         if (!isConnected()) {
-            logger.error("❌ No active FIX session");
+            logger.error("No active FIX session");
             return;
         }
         
         try {
-            logger.info("📤 Sending NewOrderSingle message...");
-            logger.info("📋 Order details: Symbol={}, Side={}, Quantity={}, Price={}, Type={}", 
+            logger.info("Sending NewOrderSingle message...");
+            logger.info("Order details: Symbol={}, Side={}, Quantity={}, Price={}, Type={}", 
                 symbol, side == '1' ? "BUY" : "SELL", quantity, price, orderType == '1' ? "MARKET" : "LIMIT");
             
             // Create a NewOrderSingle message
@@ -139,22 +139,22 @@ public class FixTestClient {
             // Set price for limit orders
             if (orderType == '2') { // Limit order
                 order.set(new Price(price));
-                logger.info("💰 Limit order price set to: {}", price);
+                logger.info("Limit order price set to: {}", price);
             }
             
             // Log the complete message
-            logger.info("📨 FIX message prepared: {}", order);
+            logger.info("FIX message prepared: {}", order);
             
             // Send the order
             boolean sent = session.send(order);
             if (sent) {
-                logger.info("✅ Order sent successfully! ClientOrderID: {}", clientOrderId);
+                logger.info("Order sent successfully! ClientOrderID: {}", clientOrderId);
             } else {
-                logger.error("❌ Failed to send order");
+                logger.error("Failed to send order");
             }
             
         } catch (Exception e) {
-            logger.error("❌ Error sending order", e);
+            logger.error("Error sending order", e);
         }
     }
     
@@ -163,13 +163,13 @@ public class FixTestClient {
      */
     public void sendOrderCancelRequest(String clientOrderId, String symbol, char side, int quantity) {
         if (!isConnected()) {
-            logger.error("❌ No active FIX session");
+            logger.error("No active FIX session");
             return;
         }
         
         try {
-            logger.info("🚫 Sending OrderCancelRequest...");
-            logger.info("📋 Cancel details: ClOrdID={}, Symbol={}, Side={}, Quantity={}", 
+            logger.info("Sending OrderCancelRequest...");
+            logger.info("Cancel details: ClOrdID={}, Symbol={}, Side={}, Quantity={}", 
                 clientOrderId, symbol, side == '1' ? "BUY" : "SELL", quantity);
             
             quickfix.fix44.OrderCancelRequest cancelRequest = new quickfix.fix44.OrderCancelRequest();
@@ -180,17 +180,17 @@ public class FixTestClient {
             cancelRequest.set(new OrderQty(quantity));
             cancelRequest.set(new TransactTime());
             
-            logger.info("📨 Cancel request prepared: {}", cancelRequest);
+            logger.info("Cancel request prepared: {}", cancelRequest);
             
             boolean sent = session.send(cancelRequest);
             if (sent) {
-                logger.info("✅ Cancel request sent successfully!");
+                logger.info("Cancel request sent successfully!");
             } else {
-                logger.error("❌ Failed to send cancel request");
+                logger.error("Failed to send cancel request");
             }
             
         } catch (Exception e) {
-            logger.error("❌ Error sending cancel request", e);
+            logger.error("Error sending cancel request", e);
         }
     }
     
@@ -198,8 +198,8 @@ public class FixTestClient {
      * Run interactive mode for testing
      */
     private void runInteractiveMode() {
-        logger.info("🎮 Entering interactive mode...");
-        logger.info("📚 Available commands:");
+        logger.info("Entering interactive mode...");
+        logger.info("Available commands:");
         logger.info("  buy <symbol> <quantity> [price]  - Send buy order (market if no price, limit if price given)");
         logger.info("  sell <symbol> <quantity> [price] - Send sell order (market if no price, limit if price given)");
         logger.info("  cancel <clordid> <symbol> <side> <quantity> - Cancel an order");
@@ -234,15 +234,15 @@ public class FixTestClient {
                         break;
                     case "quit":
                     case "exit":
-                        logger.info("👋 Goodbye!");
+                        logger.info("Goodbye!");
                         isRunning = false;
                         break;
                     default:
-                        logger.warn("⚠️ Unknown command: {}. Type 'help' for available commands.", command);
+                        logger.warn("Unknown command: {}. Type 'help' for available commands.", command);
                 }
                 
             } catch (Exception e) {
-                logger.error("❌ Error processing command", e);
+                logger.error("Error processing command", e);
             }
         }
         
@@ -252,7 +252,7 @@ public class FixTestClient {
     
     private void handleBuyOrder(String[] parts) {
         if (parts.length < 3) {
-            logger.warn("⚠️ Usage: buy <symbol> <quantity> [price]");
+            logger.warn("Usage: buy <symbol> <quantity> [price]");
             return;
         }
         
@@ -271,7 +271,7 @@ public class FixTestClient {
     
     private void handleSellOrder(String[] parts) {
         if (parts.length < 3) {
-            logger.warn("⚠️ Usage: sell <symbol> <quantity> [price]");
+            logger.warn("Usage: sell <symbol> <quantity> [price]");
             return;
         }
         
@@ -290,7 +290,7 @@ public class FixTestClient {
     
     private void handleCancelOrder(String[] parts) {
         if (parts.length < 5) {
-            logger.warn("⚠️ Usage: cancel <clordid> <symbol> <side> <quantity>");
+            logger.warn("Usage: cancel <clordid> <symbol> <side> <quantity>");
             return;
         }
         
@@ -303,7 +303,7 @@ public class FixTestClient {
     }
     
     private void showStatus() {
-        logger.info("📊 Connection Status:");
+        logger.info("Connection Status:");
         logger.info("  Running: {}", isRunning);
         logger.info("  Session: {}", session != null ? session.getSessionID() : "None");
         logger.info("  Logged On: {}", session != null && session.isLoggedOn());
@@ -317,63 +317,63 @@ public class FixTestClient {
         
         @Override
         public void onCreate(SessionID sessionID) {
-            logger.info("🔵 FIX session created: {}", sessionID);
+            logger.info("FIX session created: {}", sessionID);
         }
         
         @Override
         public void onLogon(SessionID sessionID) {
-            logger.info("🟢 FIX session logged on: {}", sessionID);
+            logger.info("FIX session logged on: {}", sessionID);
             session = Session.lookupSession(sessionID);
             logonLatch.countDown();
         }
         
         @Override
         public void onLogout(SessionID sessionID) {
-            logger.info("🔴 FIX session logged out: {}", sessionID);
+            logger.info("FIX session logged out: {}", sessionID);
             session = null;
             isRunning = false;
         }
         
         @Override
         public void toAdmin(Message message, SessionID sessionID) {
-            logger.debug("📤 Sending admin message: {}", message);
+            logger.debug("Sending admin message: {}", message);
         }
         
         @Override
         public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-            logger.debug("📥 Received admin message: {}", message);
+            logger.debug("Received admin message: {}", message);
             
             // Handle specific admin messages
             try {
                 String msgType = message.getHeader().getString(MsgType.FIELD);
                 if ("A".equals(msgType)) { // Logon
-                    logger.info("📥 Received Logon message from session: {}", sessionID);
+                    logger.info("Received Logon message from session: {}", sessionID);
                 } else if ("5".equals(msgType)) { // Logout
-                    logger.info("📥 Received Logout message from session: {}", sessionID);
+                    logger.info("Received Logout message from session: {}", sessionID);
                 } else if ("0".equals(msgType)) { // Heartbeat
-                    logger.debug("💓 Received Heartbeat from session: {}", sessionID);
+                    logger.debug("Received Heartbeat from session: {}", sessionID);
                 } else if ("1".equals(msgType)) { // Test Request
-                    logger.debug("🧪 Received Test Request from session: {}", sessionID);
+                    logger.debug("Received Test Request from session: {}", sessionID);
                 }
             } catch (FieldNotFound e) {
-                logger.warn("⚠️ Admin message missing MsgType field");
+                logger.warn("Admin message missing MsgType field");
             }
         }
         
         @Override
         public void toApp(Message message, SessionID sessionID) throws DoNotSend {
-            logger.debug("📤 Sending app message: {}", message);
+            logger.debug("Sending app message: {}", message);
         }
         
         @Override
         public void fromApp(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-            logger.info("📥 Received application message from session: {}", sessionID);
-            logger.info("📨 Message content: {}", message);
+            logger.info("Received application message from session: {}", sessionID);
+            logger.info("Message content: {}", message);
             
             try {
                 crack(message, sessionID);
             } catch (Exception e) {
-                logger.error("❌ Error processing FIX message", e);
+                logger.error("Error processing FIX message", e);
             }
         }
         
@@ -387,7 +387,7 @@ public class FixTestClient {
             char execType = message.getChar(ExecType.FIELD);
             char ordStatus = message.getChar(OrdStatus.FIELD);
             
-            logger.info("✅ Execution Report received:");
+            logger.info("Execution Report received:");
             logger.info("  OrderID: {}", orderId);
             logger.info("  ClOrdID: {}", clientOrderId);
             logger.info("  ExecType: {}", execType);
@@ -418,8 +418,8 @@ public class FixTestClient {
         @MessageCracker.Handler
         public void onMessage(quickfix.fix44.Reject message, SessionID sessionID) throws FieldNotFound {
             String reason = message.getString(Text.FIELD);
-            logger.warn("⚠️ Reject message received: {}", reason);
-            logger.warn("📨 Reject details: {}", message);
+            logger.warn("Reject message received: {}", reason);
+            logger.warn("Reject details: {}", message);
         }
         
         /**
@@ -429,8 +429,8 @@ public class FixTestClient {
         public void onMessage(quickfix.fix44.OrderCancelReject message, SessionID sessionID) throws FieldNotFound {
             String clientOrderId = message.getString(ClOrdID.FIELD);
             String reason = message.getString(Text.FIELD);
-            logger.warn("⚠️ Order Cancel Reject received for ClOrdID: {}", clientOrderId);
-            logger.warn("📨 Reject reason: {}", reason);
+            logger.warn("Order Cancel Reject received for ClOrdID: {}", clientOrderId);
+            logger.warn("Reject reason: {}", reason);
         }
     }
 }
